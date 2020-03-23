@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use structopt::StructOpt;
+use papyrus::sub_commands::SubCommands;
 
 #[derive(StructOpt, Debug)]
 struct Opt {
@@ -7,12 +7,8 @@ struct Opt {
     sub_commands: SubCommands,
 }
 
-#[derive(StructOpt, Debug)]
-enum SubCommands {
-    HashObject { object: PathBuf },
-}
-
 fn main() {
     let opt = Opt::from_args();
-    println!("{:#?}", opt);
+
+    opt.sub_commands.execute();
 }
