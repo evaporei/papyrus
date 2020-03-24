@@ -1,5 +1,5 @@
-use structopt::StructOpt;
 use papyrus::sub_commands::SubCommands;
+use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 struct Opt {
