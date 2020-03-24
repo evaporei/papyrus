@@ -10,10 +10,13 @@ pub enum SubCommands {
 
 impl SubCommands {
     pub fn execute(self) {
-        match self {
-            SubCommands::HashObject { file_name } => {
-                hash_object::execute(file_name);
-            }
+        let output = match self {
+            SubCommands::HashObject { file_name } => hash_object::execute(file_name),
+        };
+
+        match output {
+            Ok(result) => println!("{}", result),
+            Err(error) => eprintln!("{}", error),
         }
     }
 }
