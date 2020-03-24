@@ -19,3 +19,8 @@ pub fn execute(file_name: PathBuf) -> Result<String, String> {
 
     Ok(create_sha1(&contents))
 }
+
+#[test]
+fn test_create_sha1() {
+    assert_eq!(create_sha1("abc"), "a9993e364706816aba3e25717850c26c9cd0d89d");
+}
