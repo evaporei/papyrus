@@ -1,12 +1,7 @@
+use crate::fs::{FileSystem, Fs};
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
-use std::fs::read_to_string;
 use std::path::PathBuf;
-
-fn get_file_contents(file_name: &PathBuf) -> Result<String, String> {
-    read_to_string(&file_name)
-        .map_err(|err| format!("fatal: Cannot open '{:?}': {}", file_name, err))
-}
 
 fn create_sha1(input: &str) -> String {
     let mut hasher = Sha1::new();
@@ -14,13 +9,28 @@ fn create_sha1(input: &str) -> String {
     hasher.result_str()
 }
 
+#[test]
+fn test_create_sha1() {
+    assert_eq!(
+        create_sha1("contents\nanother line"),
+        "ba092ead72a64a26d7877e66d4b97640f8cd9301"
+    );
+}
+
 pub fn execute(file_name: PathBuf) -> Result<String, String> {
-    let contents = get_file_contents(&file_name)?;
+    let contents = FileSystem::access().get_file_contents(&file_name)?;
 
     Ok(create_sha1(&contents))
 }
 
 #[test]
-fn test_create_sha1() {
-    assert_eq!(create_sha1("abc"), "a9993e364706816aba3e25717850c26c9cd0d89d");
+fn test_execute() {
+    assert_eq!(
+        execute("example.txt".into()).unwrap(),
+        "ba092ead72a64a26d7877e66d4b97640f8cd9301"
+    );
+    assert_eq!(
+        execute("non_existing_file.txt".into()).unwrap_err(),
+        "fatal: Cannot open '\"non_existing_file.txt\"': No such file or directory (os error 2)"
+    );
 }
