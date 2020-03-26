@@ -4,14 +4,14 @@ use structopt::StructOpt;
 mod hash_object;
 
 #[derive(StructOpt, Debug)]
-pub enum SubCommands {
+pub enum SubCommand {
     HashObject { file_name: PathBuf },
 }
 
-impl SubCommands {
+impl SubCommand {
     pub fn execute(self) {
         let output = match self {
-            SubCommands::HashObject { file_name } => hash_object::execute(file_name),
+            Self::HashObject { file_name } => hash_object::execute(file_name),
         };
 
         match output {

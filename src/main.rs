@@ -1,14 +1,14 @@
-use papyrus::sub_commands::SubCommands;
+use papyrus::sub_commands::SubCommand;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 struct Opt {
     #[structopt(subcommand)]
-    sub_commands: SubCommands,
+    sub_command: SubCommand,
 }
 
 fn main() {
     let opt = Opt::from_args();
 
-    opt.sub_commands.execute();
+    opt.sub_command.execute();
 }
