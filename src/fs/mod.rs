@@ -15,6 +15,7 @@ pub trait Fs {
     fn remove_directory<P: AsRef<Path> + Eq>(&mut self, path: &P);
     fn path_exists<P: AsRef<OsStr> + ?Sized + Eq + AsRef<Path>>(&self, path: &P) -> bool;
     fn current_directory(&self) -> String;
+    fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P);
 }
 
 #[cfg(not(test))]

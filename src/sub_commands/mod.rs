@@ -1,6 +1,6 @@
+use crate::fs::{FileSystem, Fs};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use crate::fs::{FileSystem, Fs};
 
 mod hash_object;
 mod init;
@@ -8,7 +8,11 @@ mod init;
 #[derive(StructOpt, Debug)]
 pub enum SubCommand {
     Init,
-    HashObject { file_name: PathBuf },
+    HashObject {
+        file_name: PathBuf,
+        #[structopt(short, long)]
+        write: bool,
+    },
 }
 
 impl SubCommand {
@@ -17,7 +21,9 @@ impl SubCommand {
 
         let output = match self {
             Self::Init => init::execute(&mut fs),
-            Self::HashObject { file_name } => hash_object::execute(&mut fs, file_name),
+            Self::HashObject { file_name, write } => {
+                hash_object::execute(&mut fs, file_name, write)
+            }
         };
 
         match output {

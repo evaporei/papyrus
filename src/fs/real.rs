@@ -3,7 +3,8 @@ use std::cmp::Eq;
 use std::env::current_dir;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
-use std::fs::{create_dir, remove_dir_all};
+use std::fs::File;
+use std::fs::{create_dir_all, remove_dir_all};
 use std::path::{Path, PathBuf};
 
 pub struct RealFs;
@@ -17,7 +18,7 @@ impl Fs for RealFs {
             .map_err(|err| format!("fatal: Cannot open '{:?}': {}", file_name, err))
     }
     fn create_directory<P: AsRef<Path> + Eq>(&mut self, path: &P) {
-        create_dir(path).unwrap();
+        create_dir_all(path).unwrap();
     }
     fn remove_directory<P: AsRef<Path> + Eq>(&mut self, path: &P) {
         remove_dir_all(path).unwrap();
@@ -29,5 +30,8 @@ impl Fs for RealFs {
         let current_directory_pathbuf = current_dir().unwrap();
         let current_directory = current_directory_pathbuf.to_str().unwrap();
         current_directory.to_string()
+    }
+    fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P) {
+        File::create(path).unwrap();
     }
 }

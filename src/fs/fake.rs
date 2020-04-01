@@ -59,4 +59,9 @@ impl Fs for FakeFs {
     fn current_directory(&self) -> String {
         self.current_directory.clone()
     }
+    fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P) {
+        let mut pathbuf = PathBuf::new();
+        pathbuf.push(path);
+        self.files.insert(pathbuf, "".to_string());
+    }
 }

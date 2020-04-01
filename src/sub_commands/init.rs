@@ -26,7 +26,10 @@ fn test_execute_non_initialized() {
 
     let message = execute(&mut fs).unwrap();
 
-    assert_eq!(message, "Initialized empty Papyrus repository in /Users/jack/cool_project/.papyrus/");
+    assert_eq!(
+        message,
+        "Initialized empty Papyrus repository in /Users/jack/cool_project/.papyrus/"
+    );
 
     assert!(fs.path_exists(&format!("{}/.papyrus/", fs.current_directory())));
     assert!(fs.path_exists(&format!("{}/.papyrus/objects", fs.current_directory())));
@@ -40,7 +43,10 @@ fn test_execute_already_initialized() {
 
     let message = execute(&mut fs).unwrap();
 
-    assert_eq!(message, "Reinitialized existing Papyrus repository in /Users/jack/cool_project/.papyrus/");
+    assert_eq!(
+        message,
+        "Reinitialized existing Papyrus repository in /Users/jack/cool_project/.papyrus/"
+    );
 
     assert!(fs.path_exists(&format!("{}/.papyrus/", fs.current_directory())));
 }
