@@ -17,20 +17,28 @@ fn test_create_sha1() {
     );
 }
 
-pub fn execute(file_name: PathBuf) -> Result<String, String> {
-    let contents = FileSystem::access().get_file_contents(&file_name)?;
+pub fn execute(fs: &mut FileSystem, file_name: PathBuf) -> Result<String, String> {
+    let contents = fs.get_file_contents(&file_name)?;
 
     Ok(create_sha1(&contents))
 }
 
 #[test]
-fn test_execute() {
+fn test_execute_existing_file() {
+    let mut fs = FileSystem::access();
+
     assert_eq!(
-        execute("example.txt".into()).unwrap(),
+        execute(&mut fs, "example.txt".into()).unwrap(),
         "ba092ead72a64a26d7877e66d4b97640f8cd9301"
     );
+}
+
+#[test]
+fn test_execute_non_existing_file() {
+    let mut fs = FileSystem::access();
+
     assert_eq!(
-        execute("non_existing_file.txt".into()).unwrap_err(),
+        execute(&mut fs, "non_existing_file.txt".into()).unwrap_err(),
         "fatal: Cannot open '\"non_existing_file.txt\"': No such file or directory (os error 2)"
     );
 }

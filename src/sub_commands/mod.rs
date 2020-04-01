@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
+use crate::fs::{FileSystem, Fs};
 
 mod hash_object;
 mod init;
@@ -12,9 +13,11 @@ pub enum SubCommand {
 
 impl SubCommand {
     pub fn execute(self) {
+        let mut fs = FileSystem::access();
+
         let output = match self {
-            Self::Init => init::execute(),
-            Self::HashObject { file_name } => hash_object::execute(file_name),
+            Self::Init => init::execute(&mut fs),
+            Self::HashObject { file_name } => hash_object::execute(&mut fs, file_name),
         };
 
         match output {
