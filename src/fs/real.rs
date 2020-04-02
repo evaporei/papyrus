@@ -4,7 +4,8 @@ use std::env::current_dir;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::fs::File;
-use std::fs::{create_dir_all, remove_dir_all};
+use std::fs::{create_dir_all, remove_dir_all, OpenOptions};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 pub struct RealFs;
@@ -33,5 +34,18 @@ impl Fs for RealFs {
     }
     fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P) {
         File::create(path).unwrap();
+    }
+    fn write_file<P: AsRef<Path> + Eq>(&mut self, path: &P, contents: &[u8]) {
+        let mut file = OpenOptions::new().write(true).open(path).unwrap();
+        file.write(contents).unwrap();
+    }
+    fn get_file_contents_as_bytes(&self, file_name: &PathBuf) -> Result<Vec<u8>, String> {
+        let mut buffer = Vec::new();
+
+        let mut f = File::open(file_name)
+            .map_err(|err| format!("fatal: Cannot open '{:?}': {}", file_name, err))?;
+        f.read_to_end(&mut buffer).unwrap();
+
+        Ok(buffer)
     }
 }

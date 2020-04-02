@@ -1,6 +1,9 @@
 use crate::fs::{FileSystem, Fs};
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
+use flate2::write::ZlibEncoder;
+use flate2::Compression;
+use std::io::Write;
 use std::path::PathBuf;
 
 fn create_sha1(input: &str) -> String {
@@ -12,15 +15,34 @@ fn create_sha1(input: &str) -> String {
 #[test]
 fn test_create_sha1() {
     assert_eq!(
-        create_sha1("contents\nanother line"),
-        "ba092ead72a64a26d7877e66d4b97640f8cd9301"
+        create_sha1("blob 21\x00contents\nanother line"),
+        "f9936bb09530fbc19a32568bde0738d9234037e4"
+    );
+}
+
+fn zlib_compress(input: &str) -> Vec<u8> {
+    let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+    encoder.write(input.as_bytes()).unwrap();
+    encoder.finish().unwrap()
+}
+
+#[test]
+fn test_zlib_compress() {
+    assert_eq!(
+        zlib_compress("blob 21\x00contents\nanother line"),
+        vec![
+            120, 156, 75, 202, 201, 79, 82, 48, 50, 100, 72, 206, 207, 43, 73, 205, 43, 41, 230,
+            74, 204, 203, 47, 201, 72, 45, 82, 200, 201, 204, 75, 5, 0, 148, 92, 10, 84
+        ]
     );
 }
 
 pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<String, String> {
     let contents = fs.get_file_contents(&file_name)?;
 
-    let sha1 = create_sha1(&contents);
+    let object_contents = format!("blob {}\x00{}", contents.len(), contents);
+
+    let sha1 = create_sha1(&object_contents);
 
     if write {
         let object_folder = &sha1[..2];
@@ -38,6 +60,10 @@ pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<S
         absolute_file_path.set_file_name(object_file);
 
         fs.create_file(&absolute_file_path);
+
+        let compressed_object_contents = zlib_compress(&object_contents);
+
+        fs.write_file(&absolute_file_path, &compressed_object_contents);
     }
 
     Ok(sha1)
@@ -49,7 +75,7 @@ fn test_execute_existing_file() {
 
     assert_eq!(
         execute(&mut fs, "example.txt".into(), false).unwrap(),
-        "ba092ead72a64a26d7877e66d4b97640f8cd9301"
+        "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 }
 
@@ -59,14 +85,26 @@ fn test_execute_writing_existing_file() {
 
     assert_eq!(
         execute(&mut fs, "example.txt".into(), true).unwrap(),
-        "ba092ead72a64a26d7877e66d4b97640f8cd9301"
+        "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 
-    assert!(fs.path_exists(&format!("{}/.papyrus/objects/ba", fs.current_directory())));
+    assert!(fs.path_exists(&format!("{}/.papyrus/objects/f9", fs.current_directory())));
     assert!(fs.path_exists(&format!(
-        "{}/.papyrus/objects/ba/092ead72a64a26d7877e66d4b97640f8cd9301",
+        "{}/.papyrus/objects/f9/936bb09530fbc19a32568bde0738d9234037e4",
         fs.current_directory()
     )));
+    let full_file_path = format!(
+        "{}/.papyrus/objects/f9/936bb09530fbc19a32568bde0738d9234037e4",
+        fs.current_directory()
+    )
+    .into();
+    assert_eq!(
+        fs.get_file_contents_as_bytes(&full_file_path).unwrap(),
+        vec![
+            120, 156, 75, 202, 201, 79, 82, 48, 50, 100, 72, 206, 207, 43, 73, 205, 43, 41, 230,
+            74, 204, 203, 47, 201, 72, 45, 82, 200, 201, 204, 75, 5, 0, 148, 92, 10, 84
+        ]
+    );
 }
 
 #[test]

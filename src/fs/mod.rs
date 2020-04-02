@@ -16,6 +16,8 @@ pub trait Fs {
     fn path_exists<P: AsRef<OsStr> + ?Sized + Eq + AsRef<Path>>(&self, path: &P) -> bool;
     fn current_directory(&self) -> String;
     fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P);
+    fn write_file<P: AsRef<Path> + Eq>(&mut self, path: &P, contents: &[u8]);
+    fn get_file_contents_as_bytes(&self, file_name: &PathBuf) -> Result<Vec<u8>, String>;
 }
 
 #[cfg(not(test))]
