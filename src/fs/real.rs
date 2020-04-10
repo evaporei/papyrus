@@ -2,9 +2,8 @@ use crate::fs::Fs;
 use std::cmp::Eq;
 use std::env::current_dir;
 use std::ffi::OsStr;
-use std::fs::read_to_string;
-use std::fs::File;
 use std::fs::{create_dir_all, remove_dir_all, OpenOptions};
+use std::fs::{read_dir, read_to_string, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -47,5 +46,25 @@ impl Fs for RealFs {
         f.read_to_end(&mut buffer).unwrap();
 
         Ok(buffer)
+    }
+    fn get_directory_files_starting_with(
+        &self,
+        directory: &PathBuf,
+        file_name: &PathBuf,
+    ) -> Vec<PathBuf> {
+        read_dir(directory)
+            .unwrap()
+            .map(|a| a.unwrap())
+            .filter(|a| a.path().is_file())
+            .filter(|a| {
+                a.path()
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .starts_with(&file_name.to_str().unwrap()[2..])
+            })
+            .map(|a| a.path())
+            .collect::<Vec<PathBuf>>()
     }
 }

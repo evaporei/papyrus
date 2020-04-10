@@ -18,6 +18,11 @@ pub trait Fs {
     fn create_file<P: AsRef<Path> + Eq>(&mut self, path: &P);
     fn write_file<P: AsRef<Path> + Eq>(&mut self, path: &P, contents: &[u8]);
     fn get_file_contents_as_bytes(&self, file_name: &PathBuf) -> Result<Vec<u8>, String>;
+    fn get_directory_files_starting_with(
+        &self,
+        directory: &PathBuf,
+        file_name: &PathBuf,
+    ) -> Vec<PathBuf>;
 }
 
 #[cfg(not(test))]

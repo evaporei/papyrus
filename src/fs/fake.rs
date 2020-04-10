@@ -79,4 +79,22 @@ impl Fs for FakeFs {
             )),
         }
     }
+    fn get_directory_files_starting_with(
+        &self,
+        directory: &PathBuf,
+        file_name: &PathBuf,
+    ) -> Vec<PathBuf> {
+        let mut full_file_path = directory.clone();
+        full_file_path.push(&file_name.to_str().unwrap()[2..]);
+
+        self.files
+            .keys()
+            .filter(|k| {
+                k.to_str()
+                    .unwrap()
+                    .starts_with(&full_file_path.to_str().unwrap())
+            })
+            .map(|p| p.clone())
+            .collect::<Vec<PathBuf>>()
+    }
 }
