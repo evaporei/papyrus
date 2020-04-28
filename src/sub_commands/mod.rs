@@ -14,10 +14,13 @@ pub enum SubCommand {
         #[structopt(short, long)]
         write: bool,
     },
-    CatFile {
-        file_type: String,
-        file_name: String,
-    },
+    CatFile(CatFile),
+}
+
+#[derive(StructOpt, Debug)]
+pub enum CatFile {
+    Blob { file_name: String },
+    Type { file_name: String },
 }
 
 impl SubCommand {
@@ -29,10 +32,12 @@ impl SubCommand {
             Self::HashObject { file_name, write } => {
                 hash_object::execute(&mut fs, file_name, write)
             }
-            Self::CatFile {
-                file_type,
-                file_name,
-            } => cat_file::execute(&fs, file_type, file_name),
+            Self::CatFile(CatFile::Blob { file_name }) => {
+                cat_file::execute(&fs, "blob".to_string(), file_name)
+            }
+            Self::CatFile(CatFile::Type { file_name }) => {
+                cat_file::execute(&fs, "-t".to_string(), file_name)
+            }
         };
 
         match output {
