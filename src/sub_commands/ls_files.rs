@@ -27,5 +27,11 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
     // sanity check of checksum
     assert_eq!(sha1_bytes, checksum);
 
+    let header = &index_content[..12];
+
+    let signature = &header[..4];
+    // sanity check of signature
+    assert_eq!(signature, b"DIRC");
+
     Ok("nothing".to_string())
 }
