@@ -33,5 +33,9 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
     // sanity check of signature
     assert_eq!(signature, b"DIRC");
 
+    let version = &header[4..8];
+    // sanity check of version
+    assert_eq!(version, &[0, 0, 0, 2]);
+
     Ok("nothing".to_string())
 }
