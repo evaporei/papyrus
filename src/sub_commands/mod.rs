@@ -48,7 +48,10 @@ impl SubCommand {
 
         match output {
             Ok(result) => println!("{}", result),
-            Err(error) => eprintln!("{}", error),
+            Err(error) => {
+                eprintln!("{}", error);
+                std::process::exit(1);
+            },
         }
     }
 }
