@@ -21,10 +21,6 @@ struct IndexEntry {
 }
 
 pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
-    if !stage {
-        return Err("fatal: ls-files without --stage is not implemented yet".to_string());
-    }
-
     let index_path = format!("{}/.papyrus/index", fs.current_directory());
 
     if !fs.path_exists(&index_path) {
@@ -99,17 +95,19 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
     let mut output = String::new();
 
     for entry in &entries {
-        let flags = u16::from_be_bytes(entry.flags.try_into().unwrap());
-        let stage = (flags >> 12) & 3;
+        if stage {
+            let flags = u16::from_be_bytes(entry.flags.try_into().unwrap());
+            let stage = (flags >> 12) & 3;
 
-        let mode = u32::from_be_bytes(entry.mode.try_into().unwrap());
-        output.push_str(&format!("{:o} ", mode));
+            let mode = u32::from_be_bytes(entry.mode.try_into().unwrap());
+            output.push_str(&format!("{:o} ", mode));
 
-        for s in entry.sha1.iter() {
-            output.push_str(&format!("{:02x}", s));
+            for s in entry.sha1.iter() {
+                output.push_str(&format!("{:02x}", s));
+            }
+
+            output.push_str(&format!(" {:?}\t", stage));
         }
-
-        output.push_str(&format!(" {:?}\t", stage));
 
         let path = std::str::from_utf8(&entry.path).unwrap();
         output.push_str(&format!("{}", path));
