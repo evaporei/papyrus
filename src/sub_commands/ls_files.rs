@@ -29,12 +29,12 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
 
     let index_content = fs.get_file_contents_as_bytes(&index_path.into()).unwrap();
 
-    let entries = parse_index_file_content(&index_content);
+    let entries = parse_index_file_content(&index_content)?;
 
     Ok(format_index_entries(entries, stage))
 }
 
-fn parse_index_file_content(index_content: &[u8]) -> Vec<IndexEntry> {
+fn parse_index_file_content(index_content: &[u8]) -> Result<Vec<IndexEntry>, String> {
     let mut hasher = Sha1::new();
     let index_of_checksum = index_content.len() - 20;
     hasher.input(&index_content[..index_of_checksum]);
@@ -45,17 +45,23 @@ fn parse_index_file_content(index_content: &[u8]) -> Vec<IndexEntry> {
     let checksum: Vec<u8> = index_content.iter().rev().take(20).rev().map(|a| *a).collect();
 
     // sanity check of checksum
-    assert_eq!(sha1_bytes, checksum);
+    if sha1_bytes != checksum {
+        return Err("error: bad index file sha1 signature\nfatal: index file corrupt".to_string());
+    }
 
     let header = &index_content[..12];
 
     let signature = &header[..4];
     // sanity check of signature
-    assert_eq!(signature, b"DIRC");
+    if signature != b"DIRC" {
+        return Err("error: bad signature\nfatal: index file corrupt".to_string());
+    }
 
     let version = &header[4..8];
     // sanity check of version
-    assert_eq!(version, &[0, 0, 0, 2]);
+    if version != &[0, 0, 0, 2] {
+        return Err("error: bad version\nfatal: index file corrupt".to_string());
+    }
 
     let number_of_entries = &header[8..12];
 
@@ -98,7 +104,7 @@ fn parse_index_file_content(index_content: &[u8]) -> Vec<IndexEntry> {
         i += entry_length;
     }
 
-    entries
+    Ok(entries)
 }
 
 fn format_index_entries(entries: Vec<IndexEntry>, stage: bool) -> String {
