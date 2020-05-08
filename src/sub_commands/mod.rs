@@ -43,11 +43,15 @@ impl SubCommand {
             Self::CatFile(CatFile::Type { file_name }) => {
                 cat_file::execute(&fs, "-t".to_string(), file_name)
             }
-            Self::LsFiles { stage } => ls_files::execute(&mut fs, stage),
+            Self::LsFiles { stage } => ls_files::execute(&fs, stage),
         };
 
         match output {
-            Ok(result) => println!("{}", result),
+            Ok(result) => {
+                if result.len() > 0 {
+                    println!("{}", result);
+                }
+            },
             Err(error) => {
                 eprintln!("{}", error);
                 std::process::exit(1);

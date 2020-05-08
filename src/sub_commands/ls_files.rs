@@ -20,11 +20,11 @@ struct IndexEntry {
     path: Vec<u8>,
 }
 
-pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
+pub fn execute(fs: &FileSystem, stage: bool) -> Result<String, String> {
     let index_path = format!("{}/.papyrus/index", fs.current_directory());
 
     if !fs.path_exists(&index_path) {
-        fs.create_file(&index_path);
+        return Ok("".to_string());
     }
 
     let index_content = fs.get_file_contents_as_bytes(&index_path.into()).unwrap();
