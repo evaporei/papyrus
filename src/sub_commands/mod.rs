@@ -5,6 +5,7 @@ use structopt::StructOpt;
 pub mod cat_file;
 pub mod hash_object;
 pub mod init;
+pub mod ls_files;
 
 #[derive(StructOpt, Debug)]
 pub enum SubCommand {
@@ -15,6 +16,10 @@ pub enum SubCommand {
         write: bool,
     },
     CatFile(CatFile),
+    LsFiles {
+        #[structopt(short, long)]
+        stage: bool,
+    },
 }
 
 #[derive(StructOpt, Debug)]
@@ -38,11 +43,19 @@ impl SubCommand {
             Self::CatFile(CatFile::Type { file_name }) => {
                 cat_file::execute(&fs, "-t".to_string(), file_name)
             }
+            Self::LsFiles { stage } => ls_files::execute(&fs, stage),
         };
 
         match output {
-            Ok(result) => println!("{}", result),
-            Err(error) => eprintln!("{}", error),
+            Ok(result) => {
+                if result.len() > 0 {
+                    println!("{}", result);
+                }
+            },
+            Err(error) => {
+                eprintln!("{}", error);
+                std::process::exit(1);
+            },
         }
     }
 }
