@@ -29,6 +29,12 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
 
     let index_content = fs.get_file_contents_as_bytes(&index_path.into()).unwrap();
 
+    let entries = parse_index_file_content(&index_content);
+
+    Ok(format_index_entries(entries, stage))
+}
+
+fn parse_index_file_content(index_content: &[u8]) -> Vec<IndexEntry> {
     let mut hasher = Sha1::new();
     let index_of_checksum = index_content.len() - 20;
     hasher.input(&index_content[..index_of_checksum]);
@@ -61,8 +67,8 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
 
     while i + 62 < entry_data.len() && count <= quantity {
         count += 1;
-        let fields_end = i + 62;// OK
-        let fields = &entry_data[i..fields_end];// OK
+        let fields_end = i + 62;
+        let fields = &entry_data[i..fields_end];
         let path_end = entry_data.iter().skip(fields_end).position(|a| *a == b'\x00').unwrap() + fields_end;
         let path = &entry_data[fields_end..path_end];
 
@@ -92,6 +98,10 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
         i += entry_length;
     }
 
+    entries
+}
+
+fn format_index_entries(entries: Vec<IndexEntry>, stage: bool) -> String {
     let mut output = String::new();
 
     for entry in &entries {
@@ -119,5 +129,5 @@ pub fn execute(fs: &mut FileSystem, stage: bool) -> Result<String, String> {
         }
     }
 
-    Ok(output)
+    output
 }
