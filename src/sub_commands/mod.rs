@@ -51,11 +51,11 @@ impl SubCommand {
                 if result.len() > 0 {
                     println!("{}", result);
                 }
-            },
+            }
             Err(error) => {
                 eprintln!("{}", error);
                 std::process::exit(1);
-            },
+            }
         }
     }
 }
