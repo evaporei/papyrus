@@ -36,7 +36,7 @@ impl Fs for RealFs {
     }
     fn write_file<P: AsRef<Path> + Eq>(&mut self, path: &P, contents: &[u8]) {
         let mut file = OpenOptions::new().write(true).open(path).unwrap();
-        file.write(contents).unwrap();
+        file.write_all(contents).unwrap();
     }
     fn get_file_contents_as_bytes(&self, file_name: &PathBuf) -> Result<Vec<u8>, String> {
         let mut buffer = Vec::new();
@@ -54,7 +54,7 @@ impl Fs for RealFs {
     ) -> Vec<PathBuf> {
         read_dir(directory)
             .unwrap()
-            .map(|a| a.unwrap())
+            .map(Result::unwrap)
             .filter(|a| a.path().is_file())
             .filter(|a| {
                 a.path()

@@ -22,7 +22,7 @@ fn test_create_sha1() {
 
 fn zlib_compress(input: &str) -> Vec<u8> {
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
-    encoder.write(input.as_bytes()).unwrap();
+    encoder.write_all(input.as_bytes()).unwrap();
     encoder.finish().unwrap()
 }
 

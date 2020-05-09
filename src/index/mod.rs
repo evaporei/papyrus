@@ -31,7 +31,7 @@ impl IndexEntry {
 
         let version = &header[4..8];
         // sanity check of version
-        if version != &[0, 0, 0, 2] {
+        if version != [0, 0, 0, 2] {
             return Err("error: bad version\nfatal: index file corrupt".to_string());
         }
 
@@ -49,7 +49,7 @@ impl IndexEntry {
             .rev()
             .take(20)
             .rev()
-            .map(|a| *a)
+            .copied()
             .collect();
 
         // sanity check of checksum
@@ -117,7 +117,7 @@ impl IndexEntry {
                 let mode = u32::from_be_bytes(entry.mode.try_into().unwrap());
                 output.push_str(&format!("{:o} ", mode));
 
-                for s in entry.sha1.iter() {
+                for s in &entry.sha1 {
                     output.push_str(&format!("{:02x}", s));
                 }
 
@@ -125,7 +125,7 @@ impl IndexEntry {
             }
 
             let path = std::str::from_utf8(&entry.path).unwrap();
-            output.push_str(&format!("{}", path));
+            output.push_str(&path);
 
             if let Some(last) = entries.last() {
                 if last != entry {

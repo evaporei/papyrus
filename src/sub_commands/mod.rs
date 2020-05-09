@@ -48,7 +48,7 @@ impl SubCommand {
 
         match output {
             Ok(result) => {
-                if result.len() > 0 {
+                if !result.is_empty() {
                     println!("{}", result);
                 }
             }
