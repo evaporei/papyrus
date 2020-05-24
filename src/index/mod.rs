@@ -1,22 +1,35 @@
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
+use std::cmp::Ordering;
 use std::convert::TryInto;
 
-#[derive(Default, PartialEq)]
+#[derive(Default, PartialEq, Eq)]
 pub struct IndexEntry {
-    ctime_s: [u8; 4],
-    ctime_n: [u8; 4],
-    mtime_s: [u8; 4],
-    mtime_n: [u8; 4],
-    dev: [u8; 4],
-    ino: [u8; 4],
-    mode: [u8; 4],
-    uid: [u8; 4],
-    gid: [u8; 4],
-    size: [u8; 4],
-    sha1: [u8; 20],
-    flags: [u8; 2],
-    path: Vec<u8>,
+    pub ctime_s: [u8; 4],
+    pub ctime_n: [u8; 4],
+    pub mtime_s: [u8; 4],
+    pub mtime_n: [u8; 4],
+    pub dev: [u8; 4],
+    pub ino: [u8; 4],
+    pub mode: [u8; 4],
+    pub uid: [u8; 4],
+    pub gid: [u8; 4],
+    pub size: [u8; 4],
+    pub sha1: [u8; 20],
+    pub flags: [u8; 2],
+    pub path: Vec<u8>,
+}
+
+impl PartialOrd for IndexEntry {
+    fn partial_cmp(&self, other: &IndexEntry) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for IndexEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.path.cmp(&other.path)
+    }
 }
 
 impl IndexEntry {
@@ -44,13 +57,7 @@ impl IndexEntry {
         let mut sha1_bytes = vec![0; size];
         hasher.result(&mut sha1_bytes);
 
-        let checksum: Vec<u8> = index_content
-            .iter()
-            .rev()
-            .take(20)
-            .rev()
-            .copied()
-            .collect();
+        let checksum: Vec<u8> = index_content.iter().rev().take(20).rev().copied().collect();
 
         // sanity check of checksum
         if sha1_bytes != checksum {
