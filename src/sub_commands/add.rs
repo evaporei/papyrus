@@ -89,9 +89,10 @@ pub fn execute(fs: &mut FileSystem, files: Vec<PathBuf>) -> Result<String, Strin
             .sha1
             .copy_from_slice(&output);
 
+        let flags_bytes = file_str.len().to_be_bytes();
         entry
             .flags
-            .copy_from_slice(&(0b1010111111111111u16).to_be_bytes());
+            .copy_from_slice(&flags_bytes[flags_bytes.len() - 2..]);
 
         for p in file_str.as_bytes() {
             entry.path.push(*p);
@@ -101,6 +102,10 @@ pub fn execute(fs: &mut FileSystem, files: Vec<PathBuf>) -> Result<String, Strin
     }
 
     entries.sort();
+
+    let new_index_file_content = IndexEntry::parse_into_file(entries);
+
+    fs.write_file(&index_path, &new_index_file_content);
 
     Ok("".to_string())
 }

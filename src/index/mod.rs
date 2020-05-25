@@ -143,4 +143,55 @@ impl IndexEntry {
 
         output
     }
+
+    pub fn parse_into_file(entries: Vec<Self>) -> Vec<u8> {
+        let mut index_file_bytes = vec![];
+
+        let mut header = {
+            let signature = b"DIRC";
+            let version = &[0, 0, 0, 2];
+            let number_of_entries = &entries.len().to_be_bytes();
+
+            [signature, version, &number_of_entries[number_of_entries.len() - 4..]].concat()
+        };
+
+        index_file_bytes.append(&mut header);
+
+        for entry in entries {
+            let mut entry_bytes = [
+                entry.ctime_s,
+                entry.ctime_n,
+                entry.mtime_s,
+                entry.mtime_n,
+                entry.dev,
+                entry.ino,
+                entry.mode,
+                entry.uid,
+                entry.gid,
+                entry.size,
+            ].concat().to_vec();
+
+            entry_bytes.append(&mut entry.sha1.to_vec());
+            entry_bytes.append(&mut entry.flags.to_vec());
+            entry_bytes.append(&mut entry.path.to_vec());
+
+            let length = ((62 + entry.path.len() + 8) / 8) * 8;
+
+            for _ in 0..(length - 62 - entry.path.len()) {
+                entry_bytes.push(b'\x00');
+            }
+
+            index_file_bytes.append(&mut entry_bytes);
+        }
+
+        let mut hasher = Sha1::new();
+        hasher.input(&index_file_bytes[..]);
+        let size = hasher.output_bytes();
+        let mut sha1_bytes = vec![0; size];
+        hasher.result(&mut sha1_bytes);
+
+        index_file_bytes.append(&mut sha1_bytes);
+
+        index_file_bytes
+    }
 }
