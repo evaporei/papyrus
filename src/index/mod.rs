@@ -152,7 +152,12 @@ impl IndexEntry {
             let version = &[0, 0, 0, 2];
             let number_of_entries = &entries.len().to_be_bytes();
 
-            [signature, version, &number_of_entries[number_of_entries.len() - 4..]].concat()
+            [
+                signature,
+                version,
+                &number_of_entries[number_of_entries.len() - 4..],
+            ]
+            .concat()
         };
 
         index_file_bytes.append(&mut header);
@@ -169,7 +174,9 @@ impl IndexEntry {
                 entry.uid,
                 entry.gid,
                 entry.size,
-            ].concat().to_vec();
+            ]
+            .concat()
+            .to_vec();
 
             entry_bytes.append(&mut entry.sha1.to_vec());
             entry_bytes.append(&mut entry.flags.to_vec());

@@ -5,8 +5,14 @@ use std::path::{Path, PathBuf};
 #[cfg(not(test))]
 mod real;
 
+#[cfg(not(test))]
+pub use real::{FileMetadata, FileSystem};
+
 #[cfg(test)]
 mod fake;
+
+#[cfg(test)]
+pub use fake::{FileMetadata, FileSystem};
 
 pub trait Fs {
     fn access() -> Self;
@@ -23,10 +29,5 @@ pub trait Fs {
         directory: &PathBuf,
         file_name: &PathBuf,
     ) -> Vec<PathBuf>;
+    fn metadata<P: AsRef<Path>>(&self, path: &P) -> Result<FileMetadata, String>;
 }
-
-#[cfg(not(test))]
-pub type FileSystem = real::RealFs;
-
-#[cfg(test)]
-pub type FileSystem = fake::FakeFs;
