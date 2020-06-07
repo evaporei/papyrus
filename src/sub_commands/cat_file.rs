@@ -82,7 +82,7 @@ fn test_execute_existing_file_contents() {
         b"awesome contents yo",
     );
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
+    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(
@@ -121,7 +121,7 @@ fn test_execute_existing_file_starts_with() {
         b"awesome contents yo",
     );
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
+    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(&fs, "blob".into(), "5c7f7d".into()).unwrap(),
@@ -155,7 +155,7 @@ fn test_execute_existing_file_type() {
         b"awesome contents yo",
     );
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
+    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(

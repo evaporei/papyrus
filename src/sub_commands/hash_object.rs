@@ -37,10 +37,10 @@ fn test_zlib_compress() {
     );
 }
 
-pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<String, String> {
+pub fn execute(fs: &mut FileSystem, file_name: PathBuf, object_type: String, write: bool) -> Result<String, String> {
     let contents = fs.get_file_contents(&file_name)?;
 
-    let object_contents = format!("blob {}\x00{}", contents.len(), contents);
+    let object_contents = format!("{} {}\x00{}", object_type, contents.len(), contents);
 
     let sha1 = create_sha1(&object_contents);
 
@@ -77,7 +77,7 @@ fn test_execute_existing_file() {
     let mut fs = FileSystem::access();
 
     assert_eq!(
-        execute(&mut fs, "example.txt".into(), false).unwrap(),
+        execute(&mut fs, "example.txt".into(), "blob".into(), false).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 }
@@ -87,7 +87,7 @@ fn test_execute_writing_existing_file() {
     let mut fs = FileSystem::access();
 
     assert_eq!(
-        execute(&mut fs, "example.txt".into(), true).unwrap(),
+        execute(&mut fs, "example.txt".into(), "blob".into(), true).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 
@@ -115,7 +115,7 @@ fn test_execute_non_existing_file() {
     let mut fs = FileSystem::access();
 
     assert_eq!(
-        execute(&mut fs, "non_existing_file.txt".into(), false).unwrap_err(),
+        execute(&mut fs, "non_existing_file.txt".into(), "blob".into(), false).unwrap_err(),
         "fatal: Cannot open '\"non_existing_file.txt\"': No such file or directory (os error 2)"
     );
 }

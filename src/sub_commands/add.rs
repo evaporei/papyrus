@@ -39,7 +39,7 @@ pub fn execute(fs: &mut FileSystem, files: Vec<PathBuf>) -> Result<String, Strin
             ));
         }
 
-        let sha1 = hash_object::execute(fs, file.clone(), true)?;
+        let sha1 = hash_object::execute(fs, file.clone(), "blob".into(), true)?;
 
         let metadata = fs.metadata(&file)?;
         let permissions = metadata.permissions();

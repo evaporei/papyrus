@@ -7,6 +7,7 @@ pub mod cat_file;
 pub mod hash_object;
 pub mod init;
 pub mod ls_files;
+pub mod write_tree;
 
 #[derive(StructOpt, Debug)]
 pub enum SubCommand {
@@ -15,6 +16,8 @@ pub enum SubCommand {
         file_name: PathBuf,
         #[structopt(short, long)]
         write: bool,
+        #[structopt(default_value = "blob", short = "t", long = "type")]
+        object_type: String,
     },
     CatFile(CatFile),
     LsFiles {
@@ -24,6 +27,7 @@ pub enum SubCommand {
     Add {
         files: Vec<PathBuf>,
     },
+    WriteTree,
 }
 
 #[derive(StructOpt, Debug)]
@@ -38,8 +42,8 @@ impl SubCommand {
 
         let output = match self {
             Self::Init => init::execute(&mut fs),
-            Self::HashObject { file_name, write } => {
-                hash_object::execute(&mut fs, file_name, write)
+            Self::HashObject { file_name, object_type, write } => {
+                hash_object::execute(&mut fs, file_name, object_type, write)
             }
             Self::CatFile(CatFile::Blob { file_name }) => {
                 cat_file::execute(&fs, "blob".to_string(), file_name)
@@ -49,6 +53,7 @@ impl SubCommand {
             }
             Self::LsFiles { stage } => ls_files::execute(&fs, stage),
             Self::Add { files } => add::execute(&mut fs, files),
+            Self::WriteTree => write_tree::execute(&mut fs),
         };
 
         match output {
