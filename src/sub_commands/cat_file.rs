@@ -29,7 +29,7 @@ pub fn execute(
     let matching_object_files =
         fs.get_directory_files_starting_with(&full_file_path, &file_name[..].into());
 
-    if matching_object_files.len() == 0 {
+    if matching_object_files.is_empty() {
         return Err(format!("fatal: Not a valid object name {}", file_name));
     }
 
@@ -56,7 +56,7 @@ pub fn execute(
 }
 
 fn get_blob_contents(object_contents: &str) -> String {
-    let null_index = object_contents.find("\x00").unwrap() + 1;
+    let null_index = object_contents.find('\x00').unwrap() + 1;
 
     let file_contents = object_contents[null_index..].to_string();
 
@@ -64,7 +64,7 @@ fn get_blob_contents(object_contents: &str) -> String {
 }
 
 fn get_file_type(object_contents: &str) -> String {
-    let space_index = object_contents.find(" ").unwrap();
+    let space_index = object_contents.find(' ').unwrap();
 
     let file_type = object_contents[..space_index].to_string();
 
@@ -76,8 +76,11 @@ fn test_execute_existing_file_contents() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&"greetings.txt".to_string());
-    fs.write_file(&"greetings.txt".to_string(), b"awesome contents yo");
+    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
+    fs.write_file(
+        &format!("{}/greetings.txt", fs.current_directory()),
+        b"awesome contents yo",
+    );
 
     hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
 
@@ -112,8 +115,11 @@ fn test_execute_existing_file_starts_with() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&"greetings.txt".to_string());
-    fs.write_file(&"greetings.txt".to_string(), b"awesome contents yo");
+    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
+    fs.write_file(
+        &format!("{}/greetings.txt", fs.current_directory()),
+        b"awesome contents yo",
+    );
 
     hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
 
@@ -143,8 +149,11 @@ fn test_execute_existing_file_type() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&"greetings.txt".to_string());
-    fs.write_file(&"greetings.txt".to_string(), b"awesome contents yo");
+    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
+    fs.write_file(
+        &format!("{}/greetings.txt", fs.current_directory()),
+        b"awesome contents yo",
+    );
 
     hash_object::execute(&mut fs, "greetings.txt".into(), true).unwrap();
 

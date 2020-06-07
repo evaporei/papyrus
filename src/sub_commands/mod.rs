@@ -2,6 +2,7 @@ use crate::fs::{FileSystem, Fs};
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+pub mod add;
 pub mod cat_file;
 pub mod hash_object;
 pub mod init;
@@ -19,6 +20,9 @@ pub enum SubCommand {
     LsFiles {
         #[structopt(short, long)]
         stage: bool,
+    },
+    Add {
+        files: Vec<PathBuf>,
     },
 }
 
@@ -44,11 +48,12 @@ impl SubCommand {
                 cat_file::execute(&fs, "-t".to_string(), file_name)
             }
             Self::LsFiles { stage } => ls_files::execute(&fs, stage),
+            Self::Add { files } => add::execute(&mut fs, files),
         };
 
         match output {
             Ok(result) => {
-                if result.len() > 0 {
+                if !result.is_empty() {
                     println!("{}", result);
                 }
             }

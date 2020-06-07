@@ -4,8 +4,89 @@ use std::env::current_dir;
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, remove_dir_all, OpenOptions};
 use std::fs::{read_dir, read_to_string, File};
+use std::fs::{Metadata, Permissions};
 use std::io::{Read, Write};
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+
+pub type FileSystem = RealFs;
+pub type FileMetadata = RealFileMetadata;
+
+pub struct RealFileMetadata(Metadata);
+
+impl MetadataExt for RealFileMetadata {
+    fn dev(&self) -> u64 {
+        self.0.dev()
+    }
+    fn ino(&self) -> u64 {
+        self.0.ino()
+    }
+    fn mode(&self) -> u32 {
+        self.0.mode()
+    }
+    fn nlink(&self) -> u64 {
+        self.0.nlink()
+    }
+    fn uid(&self) -> u32 {
+        self.0.uid()
+    }
+    fn gid(&self) -> u32 {
+        self.0.gid()
+    }
+    fn rdev(&self) -> u64 {
+        self.0.rdev()
+    }
+    fn size(&self) -> u64 {
+        self.0.size()
+    }
+    fn atime(&self) -> i64 {
+        self.0.atime()
+    }
+    fn atime_nsec(&self) -> i64 {
+        self.0.atime_nsec()
+    }
+    fn mtime(&self) -> i64 {
+        self.0.mtime()
+    }
+    fn mtime_nsec(&self) -> i64 {
+        self.0.mtime_nsec()
+    }
+    fn ctime(&self) -> i64 {
+        self.0.ctime()
+    }
+    fn ctime_nsec(&self) -> i64 {
+        self.0.ctime_nsec()
+    }
+    fn blksize(&self) -> u64 {
+        self.0.blksize()
+    }
+    fn blocks(&self) -> u64 {
+        self.0.blocks()
+    }
+}
+
+impl RealFileMetadata {
+    pub fn len(&self) -> u64 {
+        self.0.len()
+    }
+    pub fn permissions(&self) -> RealPermissions {
+        RealPermissions(self.0.permissions())
+    }
+}
+
+pub struct RealPermissions(Permissions);
+
+impl PermissionsExt for RealPermissions {
+    fn mode(&self) -> u32 {
+        self.0.mode()
+    }
+    fn set_mode(&mut self, mode: u32) {
+        self.0.set_mode(mode);
+    }
+    fn from_mode(mode: u32) -> Self {
+        Self(Permissions::from_mode(mode))
+    }
+}
 
 pub struct RealFs;
 
@@ -36,7 +117,7 @@ impl Fs for RealFs {
     }
     fn write_file<P: AsRef<Path> + Eq>(&mut self, path: &P, contents: &[u8]) {
         let mut file = OpenOptions::new().write(true).open(path).unwrap();
-        file.write(contents).unwrap();
+        file.write_all(contents).unwrap();
     }
     fn get_file_contents_as_bytes(&self, file_name: &PathBuf) -> Result<Vec<u8>, String> {
         let mut buffer = Vec::new();
@@ -54,7 +135,7 @@ impl Fs for RealFs {
     ) -> Vec<PathBuf> {
         read_dir(directory)
             .unwrap()
-            .map(|a| a.unwrap())
+            .map(Result::unwrap)
             .filter(|a| a.path().is_file())
             .filter(|a| {
                 a.path()
@@ -66,5 +147,10 @@ impl Fs for RealFs {
             })
             .map(|a| a.path())
             .collect::<Vec<PathBuf>>()
+    }
+    fn metadata<P: AsRef<Path>>(&self, path: &P) -> Result<FileMetadata, String> {
+        let m = std::fs::metadata(path).map_err(|e| format!("{}", e))?;
+
+        Ok(RealFileMetadata(m))
     }
 }

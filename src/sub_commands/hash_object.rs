@@ -22,7 +22,7 @@ fn test_create_sha1() {
 
 fn zlib_compress(input: &str) -> Vec<u8> {
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
-    encoder.write(input.as_bytes()).unwrap();
+    encoder.write_all(input.as_bytes()).unwrap();
     encoder.finish().unwrap()
 }
 
@@ -53,17 +53,20 @@ pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<S
         absolute_folder_path.push("objects");
         absolute_folder_path.push(object_folder);
 
-        fs.create_directory(&absolute_folder_path);
+        if !fs.path_exists(&absolute_folder_path) {
+            fs.create_directory(&absolute_folder_path);
+        }
 
         let mut absolute_file_path = absolute_folder_path.clone();
         absolute_file_path.push(object_file);
         absolute_file_path.set_file_name(object_file);
 
-        fs.create_file(&absolute_file_path);
+        if !fs.path_exists(&absolute_file_path) {
+            fs.create_file(&absolute_file_path);
+            let compressed_object_contents = zlib_compress(&object_contents);
 
-        let compressed_object_contents = zlib_compress(&object_contents);
-
-        fs.write_file(&absolute_file_path, &compressed_object_contents);
+            fs.write_file(&absolute_file_path, &compressed_object_contents);
+        }
     }
 
     Ok(sha1)

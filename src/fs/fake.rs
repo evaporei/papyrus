@@ -2,8 +2,88 @@ use crate::fs::Fs;
 use std::cmp::Eq;
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::str::from_utf8;
+
+pub type FileSystem = FakeFs;
+pub type FileMetadata = FakeFileMetadata;
+
+pub struct FakeFileMetadata;
+
+impl MetadataExt for FakeFileMetadata {
+    fn dev(&self) -> u64 {
+        16777220
+    }
+    fn ino(&self) -> u64 {
+        21517258
+    }
+    fn mode(&self) -> u32 {
+        unimplemented!();
+    }
+    fn nlink(&self) -> u64 {
+        unimplemented!();
+    }
+    fn uid(&self) -> u32 {
+        501
+    }
+    fn gid(&self) -> u32 {
+        20
+    }
+    fn rdev(&self) -> u64 {
+        unimplemented!();
+    }
+    fn size(&self) -> u64 {
+        unimplemented!();
+    }
+    fn atime(&self) -> i64 {
+        unimplemented!();
+    }
+    fn atime_nsec(&self) -> i64 {
+        unimplemented!();
+    }
+    fn mtime(&self) -> i64 {
+        1591510158
+    }
+    fn mtime_nsec(&self) -> i64 {
+        unimplemented!();
+    }
+    fn ctime(&self) -> i64 {
+        1591510158
+    }
+    fn ctime_nsec(&self) -> i64 {
+        unimplemented!();
+    }
+    fn blksize(&self) -> u64 {
+        unimplemented!();
+    }
+    fn blocks(&self) -> u64 {
+        unimplemented!();
+    }
+}
+
+impl FakeFileMetadata {
+    pub fn len(&self) -> u64 {
+        279
+    }
+    pub fn permissions(&self) -> FakePermissions {
+        FakePermissions
+    }
+}
+
+pub struct FakePermissions;
+
+impl PermissionsExt for FakePermissions {
+    fn mode(&self) -> u32 {
+        33188
+    }
+    fn set_mode(&mut self, _mode: u32) {
+        unimplemented!();
+    }
+    fn from_mode(_mode: u32) -> Self {
+        unimplemented!();
+    }
+}
 
 pub struct FakeFs {
     files: HashMap<PathBuf, Vec<u8>>,
@@ -15,12 +95,12 @@ impl Fs for FakeFs {
     fn access() -> Self {
         let mut files = HashMap::new();
 
+        let current_directory = "/Users/jack/cool_project".to_string();
+
         files.insert(
-            "example.txt".to_string().into(),
+            format!("{}/example.txt", current_directory).into(),
             "contents\nanother line".as_bytes().to_vec(),
         );
-
-        let current_directory = "/Users/jack/cool_project".to_string();
 
         let mut directories = HashSet::new();
 
@@ -33,7 +113,15 @@ impl Fs for FakeFs {
         }
     }
     fn get_file_contents(&self, file_name: &PathBuf) -> Result<String, String> {
-        match self.files.get(file_name) {
+        let p = PathBuf::from(file_name);
+        let pathbuf = if p.is_absolute() {
+            p
+        } else {
+            let mut pathbuf = PathBuf::from(self.current_directory());
+            pathbuf.push(file_name);
+            pathbuf
+        };
+        match self.files.get(&pathbuf) {
             Some(contents) => Ok(from_utf8(contents).unwrap().to_string()),
             None => Err(format!(
                 "fatal: Cannot open '{:?}': No such file or directory (os error 2)",
@@ -52,8 +140,14 @@ impl Fs for FakeFs {
         self.directories.remove(&pathbuf);
     }
     fn path_exists<P: AsRef<OsStr> + ?Sized + Eq + AsRef<Path>>(&self, path: &P) -> bool {
-        let mut pathbuf = PathBuf::new();
-        pathbuf.push(path);
+        let p = PathBuf::from(path);
+        let pathbuf = if p.is_absolute() {
+            p
+        } else {
+            let mut pathbuf = PathBuf::from(self.current_directory());
+            pathbuf.push(path);
+            pathbuf
+        };
 
         self.directories.contains(&pathbuf) || self.files.contains_key(&pathbuf)
     }
@@ -96,5 +190,9 @@ impl Fs for FakeFs {
             })
             .map(|p| p.clone())
             .collect::<Vec<PathBuf>>()
+    }
+    fn metadata<P: AsRef<Path>>(&self, _path: &P) -> Result<FileMetadata, String> {
+        // needs to check if path exists
+        Ok(FakeFileMetadata)
     }
 }
