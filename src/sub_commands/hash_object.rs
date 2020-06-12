@@ -39,12 +39,10 @@ fn test_zlib_compress() {
 
 pub fn execute(
     fs: &mut FileSystem,
-    file_name: PathBuf,
+    contents: &[u8],
     object_type: String,
     write: bool,
 ) -> Result<String, String> {
-    let contents = fs.get_file_contents_as_bytes(&file_name)?;
-
     let mut contents_len = String::new();
 
     for i in contents.len().to_string().chars() {
@@ -91,33 +89,25 @@ pub fn execute(
 }
 
 #[test]
-fn test_execute_existing_file() {
+fn test_execute_without_write() {
     let mut fs = FileSystem::access();
 
-    let example_path = format!("{}/example.txt", fs.current_directory());
-    let example_content = "contents\nanother line";
-
-    fs.create_file(&example_path);
-    fs.write_file(&example_path, example_content.as_bytes());
+    let example_content = b"contents\nanother line";
 
     assert_eq!(
-        execute(&mut fs, example_path.into(), "blob".into(), false).unwrap(),
+        execute(&mut fs, example_content, "blob".into(), false).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 }
 
 #[test]
-fn test_execute_writing_existing_file() {
+fn test_execute_with_write() {
     let mut fs = FileSystem::access();
 
-    let example_path = format!("{}/example.txt", fs.current_directory());
-    let example_content = "contents\nanother line";
-
-    fs.create_file(&example_path);
-    fs.write_file(&example_path, example_content.as_bytes());
+    let example_content = b"contents\nanother line";
 
     assert_eq!(
-        execute(&mut fs, example_path.into(), "blob".into(), true).unwrap(),
+        execute(&mut fs, example_content, "blob".into(), true).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 
@@ -137,21 +127,5 @@ fn test_execute_writing_existing_file() {
             120, 156, 75, 202, 201, 79, 82, 48, 50, 100, 72, 206, 207, 43, 73, 205, 43, 41, 230,
             74, 204, 203, 47, 201, 72, 45, 82, 200, 201, 204, 75, 5, 0, 148, 92, 10, 84
         ]
-    );
-}
-
-#[test]
-fn test_execute_non_existing_file() {
-    let mut fs = FileSystem::access();
-
-    assert_eq!(
-        execute(
-            &mut fs,
-            "non_existing_file.txt".into(),
-            "blob".into(),
-            false
-        )
-        .unwrap_err(),
-        "fatal: Cannot open '\"non_existing_file.txt\"': No such file or directory (os error 2)"
     );
 }

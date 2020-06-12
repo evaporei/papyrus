@@ -37,16 +37,19 @@ pub enum CatFile {
 }
 
 impl SubCommand {
-    pub fn execute(self) {
+    pub fn execute(self) -> Result<String, String> {
         let mut fs = FileSystem::access();
 
-        let output = match self {
+        match self {
             Self::Init => init::execute(&mut fs),
             Self::HashObject {
                 file_name,
                 object_type,
                 write,
-            } => hash_object::execute(&mut fs, file_name, object_type, write),
+            } => {
+                let contents = fs.get_file_contents_as_bytes(&file_name)?;
+                hash_object::execute(&mut fs, &contents, object_type, write)
+            }
             Self::CatFile(CatFile::Blob { file_name }) => {
                 cat_file::execute(&fs, "blob".to_string(), file_name)
             }
@@ -56,18 +59,6 @@ impl SubCommand {
             Self::LsFiles { stage } => ls_files::execute(&fs, stage),
             Self::Add { files } => add::execute(&mut fs, files),
             Self::WriteTree => write_tree::execute(&mut fs),
-        };
-
-        match output {
-            Ok(result) => {
-                if !result.is_empty() {
-                    println!("{}", result);
-                }
-            }
-            Err(error) => {
-                eprintln!("{}", error);
-                std::process::exit(1);
-            }
         }
     }
 }

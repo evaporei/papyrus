@@ -93,7 +93,7 @@ pub struct FakeFs {
 
 impl Fs for FakeFs {
     fn access() -> Self {
-        let mut files = HashMap::new();
+        let files = HashMap::new();
 
         let current_directory = "/Users/jack/cool_project".to_string();
 

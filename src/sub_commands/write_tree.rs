@@ -14,5 +14,5 @@ pub fn execute(fs: &mut FileSystem) -> Result<String, String> {
         tree_entries.push("");
     }
 
-    hash_object::execute(fs, tree_entries.join("").into(), "tree".into(), true)
+    hash_object::execute(fs, tree_entries.join("").as_bytes(), "tree".into(), true)
 }
