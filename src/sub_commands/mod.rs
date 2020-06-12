@@ -42,9 +42,11 @@ impl SubCommand {
 
         let output = match self {
             Self::Init => init::execute(&mut fs),
-            Self::HashObject { file_name, object_type, write } => {
-                hash_object::execute(&mut fs, file_name, object_type, write)
-            }
+            Self::HashObject {
+                file_name,
+                object_type,
+                write,
+            } => hash_object::execute(&mut fs, file_name, object_type, write),
             Self::CatFile(CatFile::Blob { file_name }) => {
                 cat_file::execute(&fs, "blob".to_string(), file_name)
             }

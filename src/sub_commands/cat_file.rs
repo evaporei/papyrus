@@ -76,13 +76,11 @@ fn test_execute_existing_file_contents() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
-    fs.write_file(
-        &format!("{}/greetings.txt", fs.current_directory()),
-        b"awesome contents yo",
-    );
+    let greetings_path = format!("{}/greetings.txt", fs.current_directory());
+    fs.create_file(&greetings_path);
+    fs.write_file(&greetings_path, b"awesome contents yo");
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
+    hash_object::execute(&mut fs, greetings_path.into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(
@@ -115,13 +113,11 @@ fn test_execute_existing_file_starts_with() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
-    fs.write_file(
-        &format!("{}/greetings.txt", fs.current_directory()),
-        b"awesome contents yo",
-    );
+    let greetings_path = format!("{}/greetings.txt", fs.current_directory());
+    fs.create_file(&greetings_path);
+    fs.write_file(&greetings_path, b"awesome contents yo");
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
+    hash_object::execute(&mut fs, greetings_path.into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(&fs, "blob".into(), "5c7f7d".into()).unwrap(),
@@ -149,13 +145,11 @@ fn test_execute_existing_file_type() {
     use crate::sub_commands::hash_object;
     let mut fs = FileSystem::access();
 
-    fs.create_file(&format!("{}/greetings.txt", fs.current_directory()));
-    fs.write_file(
-        &format!("{}/greetings.txt", fs.current_directory()),
-        b"awesome contents yo",
-    );
+    let greetings_path = format!("{}/greetings.txt", fs.current_directory());
+    fs.create_file(&greetings_path);
+    fs.write_file(&greetings_path, b"awesome contents yo");
 
-    hash_object::execute(&mut fs, "greetings.txt".into(), "blob".into(), true).unwrap();
+    hash_object::execute(&mut fs, greetings_path.into(), "blob".into(), true).unwrap();
 
     assert_eq!(
         execute(

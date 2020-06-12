@@ -10,7 +10,7 @@ pub fn execute(fs: &mut FileSystem) -> Result<String, String> {
 
     let mut tree_entries = vec![];
 
-    for index_entry in index_entries {
+    for _index_entry in index_entries {
         tree_entries.push("");
     }
 
