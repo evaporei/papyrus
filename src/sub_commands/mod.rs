@@ -33,6 +33,7 @@ pub enum SubCommand {
 #[derive(StructOpt, Debug)]
 pub enum CatFile {
     Blob { file_name: String },
+    Tree { file_name: String },
     Type { file_name: String },
 }
 
@@ -52,6 +53,9 @@ impl SubCommand {
             }
             Self::CatFile(CatFile::Blob { file_name }) => {
                 cat_file::execute(&fs, "blob".to_string(), file_name)
+            }
+            Self::CatFile(CatFile::Tree { file_name }) => {
+                cat_file::execute(&fs, "tree".to_string(), file_name)
             }
             Self::CatFile(CatFile::Type { file_name }) => {
                 cat_file::execute(&fs, "-t".to_string(), file_name)

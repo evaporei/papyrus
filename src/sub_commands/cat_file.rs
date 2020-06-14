@@ -3,7 +3,7 @@ use flate2::read::ZlibDecoder;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
-const POSSIBLE_FIRST_PARAMETER: [&str; 2] = ["-t", "blob"];
+const POSSIBLE_FIRST_PARAMETER: [&str; 3] = ["-t", "blob", "tree"];
 
 pub fn execute(
     fs: &FileSystem,
@@ -49,18 +49,18 @@ pub fn execute(
     decoder.read_to_string(&mut object_contents).unwrap();
 
     match &file_type_or_type_flag[..] {
-        "blob" => Ok(get_blob_contents(&object_contents)),
+        "blob" | "tree" => Ok(get_object_data(&object_contents)),
         "-t" => Ok(get_file_type(&object_contents)),
         _ => unreachable!(),
     }
 }
 
-fn get_blob_contents(object_contents: &str) -> String {
+fn get_object_data(object_contents: &str) -> String {
     let null_index = object_contents.find('\x00').unwrap() + 1;
 
-    let file_contents = object_contents[null_index..].to_string();
+    let object_data = object_contents[null_index..].to_string();
 
-    file_contents.trim_end().to_string()
+    object_data.trim_end().to_string()
 }
 
 fn get_file_type(object_contents: &str) -> String {
@@ -132,7 +132,7 @@ fn test_execute_wrong_first_parameter() {
             "5c7f7d83d0da2baceb3789aaf457a699455992fe".into()
         )
         .unwrap_err(),
-        "fatal: papyrus cat-file first parameter can only receive one of (-t, blob)"
+        "fatal: papyrus cat-file first parameter can only receive one of (-t, blob, tree)"
     );
 }
 
