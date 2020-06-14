@@ -6,30 +6,30 @@ use flate2::Compression;
 use std::io::Write;
 use std::path::PathBuf;
 
-fn create_sha1(input: &str) -> String {
+fn create_sha1(input: &[u8]) -> String {
     let mut hasher = Sha1::new();
-    hasher.input_str(input);
+    hasher.input(&input[..]);
     hasher.result_str()
 }
 
 #[test]
 fn test_create_sha1() {
     assert_eq!(
-        create_sha1("blob 21\x00contents\nanother line"),
+        create_sha1(b"blob 21\x00contents\nanother line"),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 }
 
-fn zlib_compress(input: &str) -> Vec<u8> {
+fn zlib_compress(input: &[u8]) -> Vec<u8> {
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
-    encoder.write_all(input.as_bytes()).unwrap();
+    encoder.write_all(input).unwrap();
     encoder.finish().unwrap()
 }
 
 #[test]
 fn test_zlib_compress() {
     assert_eq!(
-        zlib_compress("blob 21\x00contents\nanother line"),
+        zlib_compress(b"blob 21\x00contents\nanother line"),
         vec![
             120, 156, 75, 202, 201, 79, 82, 48, 50, 100, 72, 206, 207, 43, 73, 205, 43, 41, 230,
             74, 204, 203, 47, 201, 72, 45, 82, 200, 201, 204, 75, 5, 0, 148, 92, 10, 84
@@ -37,10 +37,26 @@ fn test_zlib_compress() {
     );
 }
 
-pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<String, String> {
-    let contents = fs.get_file_contents(&file_name)?;
+pub fn execute(
+    fs: &mut FileSystem,
+    contents: &[u8],
+    object_type: String,
+    write: bool,
+) -> Result<String, String> {
+    let mut contents_len = String::new();
 
-    let object_contents = format!("blob {}\x00{}", contents.len(), contents);
+    for i in contents.len().to_string().chars() {
+        contents_len.push(i);
+    }
+
+    let object_contents = [
+        object_type.as_bytes(),
+        b" ",
+        &contents_len.as_bytes(),
+        b"\x00",
+        &contents,
+    ]
+    .concat();
 
     let sha1 = create_sha1(&object_contents);
 
@@ -73,21 +89,25 @@ pub fn execute(fs: &mut FileSystem, file_name: PathBuf, write: bool) -> Result<S
 }
 
 #[test]
-fn test_execute_existing_file() {
+fn test_execute_without_write() {
     let mut fs = FileSystem::access();
 
+    let example_content = b"contents\nanother line";
+
     assert_eq!(
-        execute(&mut fs, "example.txt".into(), false).unwrap(),
+        execute(&mut fs, example_content, "blob".into(), false).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 }
 
 #[test]
-fn test_execute_writing_existing_file() {
+fn test_execute_with_write() {
     let mut fs = FileSystem::access();
 
+    let example_content = b"contents\nanother line";
+
     assert_eq!(
-        execute(&mut fs, "example.txt".into(), true).unwrap(),
+        execute(&mut fs, example_content, "blob".into(), true).unwrap(),
         "f9936bb09530fbc19a32568bde0738d9234037e4"
     );
 
@@ -107,15 +127,5 @@ fn test_execute_writing_existing_file() {
             120, 156, 75, 202, 201, 79, 82, 48, 50, 100, 72, 206, 207, 43, 73, 205, 43, 41, 230,
             74, 204, 203, 47, 201, 72, 45, 82, 200, 201, 204, 75, 5, 0, 148, 92, 10, 84
         ]
-    );
-}
-
-#[test]
-fn test_execute_non_existing_file() {
-    let mut fs = FileSystem::access();
-
-    assert_eq!(
-        execute(&mut fs, "non_existing_file.txt".into(), false).unwrap_err(),
-        "fatal: Cannot open '\"non_existing_file.txt\"': No such file or directory (os error 2)"
     );
 }

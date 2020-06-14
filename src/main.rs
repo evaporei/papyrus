@@ -10,5 +10,17 @@ struct Opt {
 fn main() {
     let opt = Opt::from_args();
 
-    opt.sub_command.execute();
+    let output = opt.sub_command.execute();
+
+    match output {
+        Ok(result) => {
+            if !result.is_empty() {
+                println!("{}", result);
+            }
+        }
+        Err(error) => {
+            eprintln!("{}", error);
+            std::process::exit(1);
+        }
+    }
 }

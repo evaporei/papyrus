@@ -93,14 +93,9 @@ pub struct FakeFs {
 
 impl Fs for FakeFs {
     fn access() -> Self {
-        let mut files = HashMap::new();
+        let files = HashMap::new();
 
         let current_directory = "/Users/jack/cool_project".to_string();
-
-        files.insert(
-            format!("{}/example.txt", current_directory).into(),
-            "contents\nanother line".as_bytes().to_vec(),
-        );
 
         let mut directories = HashSet::new();
 
